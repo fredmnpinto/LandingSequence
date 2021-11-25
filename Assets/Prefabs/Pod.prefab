@@ -199,12 +199,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 3333838a6a1e72144a19bc28b27c74a7, type: 3}
+  m_Sprite: {fileID: 21300000, guid: e38ed1cfb5c1f07469404bdce52d161a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 0.16, y: 0.16}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -222,10 +222,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c20fe17f514bb6941b26091365eac176, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resistance: 2
-  floor:
+  thrustForce: 2.5
+  hullResistance: 1.5
+  floorMask:
     serializedVersion: 2
-    m_Bits: 384
+    m_Bits: 0
 --- !u!50 &4807710880615533093
 Rigidbody2D:
   serializedVersion: 4
@@ -260,18 +261,18 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.021999031, y: -0.06585309}
+  m_Offset: {x: -0.0035034418, y: -0.032561004}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 1, y: 1}
-    newSize: {x: 1, y: 1}
+    newSize: {x: 0.16, y: 0.16}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.75067705, y: 0.5676397}
+  m_Size: {x: 0.6655972, y: 0.5158521}
   m_EdgeRadius: 0
 --- !u!68 &1456779032042234040
 EdgeCollider2D:
@@ -289,17 +290,18 @@ EdgeCollider2D:
   m_Offset: {x: 0, y: 0}
   m_EdgeRadius: 0
   m_Points:
-  - {x: -0.36821562, y: 0.21716073}
-  - {x: -0.40369868, y: 0.16908328}
-  - {x: -0.40094012, y: 0.0070092715}
-  - {x: -0.37246302, y: 0.0010437258}
-  - {x: -0.36627197, y: -0.11557611}
-  - {x: 0.30458885, y: -0.10611139}
+  - {x: -0.30992526, y: 0.29120523}
+  - {x: -0.34540832, y: 0.18483743}
+  - {x: -0.36155474, y: 0.11728829}
+  - {x: -0.36931217, y: 0.059334066}
+  - {x: -0.38357192, y: -0.034331728}
+  - {x: -0.38832778, y: -0.050984092}
+  - {x: 0.301438, y: -0.0635752}
   - {x: 0.3241583, y: -0.060803194}
-  - {x: 0.32218206, y: -0.0035162196}
-  - {x: 0.35718358, y: 0.016643424}
-  - {x: 0.35124028, y: 0.1828143}
-  - {x: 0.30825722, y: 0.22387585}
+  - {x: 0.38362324, y: -0.038175344}
+  - {x: 0.37766397, y: 0.010341767}
+  - {x: 0.3449387, y: 0.23007673}
+  - {x: 0.3240114, y: 0.25695953}
   m_AdjacentStartPoint: {x: 0, y: 0}
   m_AdjacentEndPoint: {x: 0, y: 0}
   m_UseAdjacentStartPoint: 0

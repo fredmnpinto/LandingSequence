@@ -15,9 +15,9 @@ public class Pod : MonoBehaviour
     private Rigidbody2D _rb;
     private EdgeCollider2D _criticalAreaCollider;
 
-    private float _force = 5f;
-    public float resistance = 1.5f;
-    public LayerMask floor;
+    public float thrustForce = 5f;
+    public float hullResistance = 1.5f;
+    public LayerMask floorMask;
     
 
     private void Awake()
@@ -43,28 +43,28 @@ public class Pod : MonoBehaviour
         /* Main thrust */
         if (Input.GetKey(KeyCode.A))
         {
-            _rb.AddForceAtPosition(_boosterL.up * _force, _boosterL.position);
+            _rb.AddForceAtPosition(_boosterL.up * thrustForce, _boosterL.position);
         }
         if (Input.GetKey(KeyCode.D))
         {
-            _rb.AddForceAtPosition(_boosterR.up * _force, _boosterR.position);
+            _rb.AddForceAtPosition(_boosterR.up * thrustForce, _boosterR.position);
         }
         
         /* Auxiliary thrust */
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            _rb.AddForceAtPosition(_auxL.up * _force, _auxL.position);
+            _rb.AddForceAtPosition(_auxL.up * thrustForce, _auxL.position);
         }
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            _rb.AddForceAtPosition(_auxR.up * _force, _auxR.position);
+            _rb.AddForceAtPosition(_auxR.up * thrustForce, _auxR.position);
         }
     }
 
     private void OnCollisionEnter2D(Collision2D other)
     {
         /* Is either a wall or floor */
-        if (floor == (floor | (1 << other.gameObject.layer)))
+        if (floorMask == (floorMask | (1 << other.gameObject.layer)))
         {
             ContactPoint2D contact = other.GetContact(0);
             Vector2 contactPosition = contact.point;
@@ -72,7 +72,7 @@ public class Pod : MonoBehaviour
             /* Is either a stronger collision than the pod can handle
              or it collided on a critical area of the vessel */
             if (_criticalAreaCollider.IsTouching(other.collider) ||
-                other.relativeVelocity.y > resistance)
+                other.relativeVelocity.y > hullResistance)
             {
                 Debug.Log("Exploded " + other.relativeVelocity.y);
             }
