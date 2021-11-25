@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using UnityEditor;
 using UnityEngine;
 
 public class Pod : MonoBehaviour
@@ -15,9 +17,15 @@ public class Pod : MonoBehaviour
     private Rigidbody2D _rb;
     private EdgeCollider2D _criticalAreaCollider;
 
+    [SerializeField] private float totalThrustCapacity;
+    [SerializeField] private float thrustDiminishRate;
+    [SerializeField] private float thrustRegainRate;
+    private float _currentThrustCapacity;
+
     public float thrustForce = 5f;
     public float hullResistance = 1.5f;
     public LayerMask floorMask;
+    private Vector2 _initialPosition;
     
 
     private void Awake()
@@ -35,6 +43,9 @@ public class Pod : MonoBehaviour
 
         _criticalAreaCollider = GetComponent<EdgeCollider2D>();
         _rb = GetComponent<Rigidbody2D>();
+        _currentThrustCapacity = totalThrustCapacity;
+
+        _initialPosition = transform.position;
     }
 
     // Update is called once per frame
@@ -59,6 +70,12 @@ public class Pod : MonoBehaviour
         {
             _rb.AddForceAtPosition(_auxR.up * thrustForce, _auxR.position);
         }
+        
+        /* Reset Position */
+        if (Input.GetKey(KeyCode.R))
+        {
+            Reset();
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D other)
@@ -75,11 +92,46 @@ public class Pod : MonoBehaviour
                 other.relativeVelocity.y > hullResistance)
             {
                 Debug.Log("Exploded " + other.relativeVelocity.y);
+                Explode();
             }
             else
             {
                 Debug.Log("Landed Safely " + other.relativeVelocity.y);
+                OnLand();
             }
+        }
+    }
+
+    private void OnLand()
+    {
+        _currentThrustCapacity = totalThrustCapacity;
+    }
+
+    private void Explode()
+    {
+        // gameObject.SetActive(false);
+        Reset();
+    }
+
+    private void Reset()
+    {
+        transform.position = _initialPosition;
+        transform.rotation = Quaternion.identity;
+
+        _rb.angularVelocity = 0;
+        _rb.velocity = Vector2.zero;
+    }
+
+    private void ThrustAt(float forceScale, Transform forcePosition)
+    {
+        if (_currentThrustCapacity > 0)
+        {
+            _rb.AddForceAtPosition(forcePosition.up * thrustForce, forcePosition.position);
+            _currentThrustCapacity -= thrustDiminishRate;
+        }
+        else
+        {
+            Debug.Log("Thrusters capacity empty");
         }
     }
 }
