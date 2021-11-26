@@ -2,17 +2,25 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
-    private Pod _pod;
+    private Transform _podTransform;
     private Rigidbody2D _podRb;
     
+    private Text _velocityLabel;
+    public string velocityLabelDefaultText = "Velocity: ";
+
     // Start is called before the first frame update
     void Start()
     {
-        _pod = Pod.Instance;
-        _podRb = _pod.GetComponent<Rigidbody2D>();
+        _velocityLabel = transform.Find("VelocityLabel").gameObject.GetComponent<Text>();
+        
+        Pod pod = Pod.Instance;
+        
+        _podTransform = pod.transform;
+        _podRb = pod.GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
@@ -21,10 +29,8 @@ public class UIController : MonoBehaviour
         
     }
 
-    private void OnGUI()
-    {   
-        GUI.Label(new Rect(0, 0, 100, 200), $"POD\n\trotation: {_pod.transform.rotation.z * 180}\n" +
-                                            $"velocity: {_podRb.velocity}\n" +
-                                            $"angular velocity: {_podRb.angularVelocity}");
+    private void FixedUpdate()
+    {
+        _velocityLabel.text = velocityLabelDefaultText + Math.Abs(Math.Round(_podRb.velocity.y, 1));
     }
 }

@@ -17,6 +17,8 @@ public class Pod : MonoBehaviour
     private Rigidbody2D _rb;
     private EdgeCollider2D _criticalAreaCollider;
 
+    public bool invertedButtons;
+
     [SerializeField] private float totalThrustCapacity;
     [SerializeField] private float thrustDiminishRate;
     [SerializeField] private float thrustRegainRate;
@@ -52,11 +54,11 @@ public class Pod : MonoBehaviour
     void FixedUpdate()
     {
         /* Main thrust */
-        if (Input.GetKey(KeyCode.A))
+        if ((!invertedButtons && Input.GetKey(KeyCode.A)) || (invertedButtons && Input.GetKey(KeyCode.D)))
         {
             _rb.AddForceAtPosition(_boosterL.up * thrustForce, _boosterL.position);
         }
-        if (Input.GetKey(KeyCode.D))
+        if ((!invertedButtons && Input.GetKey(KeyCode.D)) || (invertedButtons && Input.GetKey(KeyCode.A)))
         {
             _rb.AddForceAtPosition(_boosterR.up * thrustForce, _boosterR.position);
         }
@@ -96,7 +98,6 @@ public class Pod : MonoBehaviour
             }
             else
             {
-                Debug.Log("Landed Safely " + other.relativeVelocity.y);
                 OnLand();
             }
         }

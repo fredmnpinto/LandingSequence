@@ -222,14 +222,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c20fe17f514bb6941b26091365eac176, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  totalThrustCapacity: 0
-  thrustDiminishRate: 0
-  thrustRegainRate: 0
+  invertedButtons: 0
+  totalThrustCapacity: 10
+  thrustDiminishRate: 0.1
+  thrustRegainRate: 0.2
   thrustForce: 2.5
-  hullResistance: 1.5
+  hullResistance: 2
   floorMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 384
 --- !u!50 &4807710880615533093
 Rigidbody2D:
   serializedVersion: 4
@@ -246,7 +247,7 @@ Rigidbody2D:
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 0.2
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 5df89fea2775caa4183c70431fa9abf5, type: 2}
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
@@ -260,7 +261,7 @@ BoxCollider2D:
   m_GameObject: {fileID: 8484652006999373649}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 5df89fea2775caa4183c70431fa9abf5, type: 2}
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
