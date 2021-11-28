@@ -8,7 +8,7 @@ using UnityEngine;
 public class Pod : MonoBehaviour
 {
     public static Pod Instance;
-    
+
     private Transform _boosterL;
     private Transform _boosterR;
     private Transform _auxL;
@@ -22,13 +22,13 @@ public class Pod : MonoBehaviour
     [SerializeField] private float totalThrustCapacity;
     [SerializeField] private float thrustDiminishRate;
     [SerializeField] private float thrustRegainRate;
-    private float _currentThrustCapacity;
+    public float currentThrustCapacity;
 
     public float thrustForce = 5f;
     public float hullResistance = 1.5f;
     public LayerMask floorMask;
     private Vector2 _initialPosition;
-    
+
 
     private void Awake()
     {
@@ -45,7 +45,7 @@ public class Pod : MonoBehaviour
 
         _criticalAreaCollider = GetComponent<EdgeCollider2D>();
         _rb = GetComponent<Rigidbody2D>();
-        _currentThrustCapacity = totalThrustCapacity;
+        currentThrustCapacity = totalThrustCapacity;
 
         _initialPosition = transform.position;
     }
@@ -53,26 +53,39 @@ public class Pod : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        bool thrusting = false;
+
         /* Main thrust */
         if ((!invertedButtons && Input.GetKey(KeyCode.A)) || (invertedButtons && Input.GetKey(KeyCode.D)))
         {
-            _rb.AddForceAtPosition(_boosterL.up * thrustForce, _boosterL.position);
+            ThrustAt(1, _boosterL.transform);
+            thrusting = true;
         }
+
         if ((!invertedButtons && Input.GetKey(KeyCode.D)) || (invertedButtons && Input.GetKey(KeyCode.A)))
         {
-            _rb.AddForceAtPosition(_boosterR.up * thrustForce, _boosterR.position);
+            ThrustAt(1, _boosterR.transform);
+            thrusting = true;
         }
-        
+
         /* Auxiliary thrust */
         if (Input.GetKey(KeyCode.LeftArrow))
         {
             _rb.AddForceAtPosition(_auxL.up * thrustForce, _auxL.position);
+            thrusting = true;
         }
+
         if (Input.GetKey(KeyCode.RightArrow))
         {
             _rb.AddForceAtPosition(_auxR.up * thrustForce, _auxR.position);
+            thrusting = true;
         }
-        
+
+        if (!thrusting && !IsGrounded())
+        {
+            GradualRegain();
+        }
+
         /* Reset Position */
         if (Input.GetKey(KeyCode.R))
         {
@@ -87,7 +100,7 @@ public class Pod : MonoBehaviour
         {
             ContactPoint2D contact = other.GetContact(0);
             Vector2 contactPosition = contact.point;
-            
+
             /* Is either a stronger collision than the pod can handle
              or it collided on a critical area of the vessel */
             if (_criticalAreaCollider.IsTouching(other.collider) ||
@@ -103,9 +116,26 @@ public class Pod : MonoBehaviour
         }
     }
 
+    private bool IsGrounded()
+    {
+        Vector2 curPosition = transform.position;
+        float castDistance = 0.5f;
+
+        RaycastHit2D hitOnGround = Physics2D.Raycast(curPosition, -transform.up, castDistance, floorMask);
+        return hitOnGround.collider != null;
+    }
+
+    private void GradualRegain()
+    {
+        if (currentThrustCapacity < totalThrustCapacity)
+            currentThrustCapacity += thrustRegainRate;
+        else
+            currentThrustCapacity = totalThrustCapacity;
+    }
+    
     private void OnLand()
     {
-        _currentThrustCapacity = totalThrustCapacity;
+        currentThrustCapacity = totalThrustCapacity;
     }
 
     private void Explode()
@@ -123,12 +153,12 @@ public class Pod : MonoBehaviour
         _rb.velocity = Vector2.zero;
     }
 
-    private void ThrustAt(float forceScale, Transform forcePosition)
+    private void ThrustAt(float forceScale, Transform thruster)
     {
-        if (_currentThrustCapacity > 0)
+        if (currentThrustCapacity > 0)
         {
-            _rb.AddForceAtPosition(forcePosition.up * thrustForce, forcePosition.position);
-            _currentThrustCapacity -= thrustDiminishRate;
+            _rb.AddForceAtPosition(thruster.up * thrustForce * forceScale, thruster.position);
+            currentThrustCapacity -= thrustDiminishRate;
         }
         else
         {
