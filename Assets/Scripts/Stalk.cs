@@ -6,15 +6,14 @@ using UnityEngine;
 public class Stalk : MonoBehaviour
 {
     public Transform target;
-    [SerializeField] private Vector2 offset; 
+    public Vector3 offset; 
     [SerializeField] private float smoothness = 5f;
 
-    private Rigidbody2D _rigidbody;
     
     // Start is called before the first frame update
     void Start()
     {
-        _rigidbody = GetComponent<Rigidbody2D>();
+        
     }
 
     // Update is called once per frame
@@ -25,13 +24,14 @@ public class Stalk : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Vector2 targetPosition = target.position;
-        Vector2 currentPosition = transform.position;
-        Vector2 currentVelocity = _rigidbody.velocity;
+        Vector3 targetPosition = target.position + offset;
+        Vector3 currentPosition = transform.position;
+        Vector3 currentVelocity = Vector2.zero;
 
         float newX = Mathf.SmoothDamp(currentPosition.x, targetPosition.x, ref currentVelocity.x, smoothness);
         float newY = Mathf.SmoothDamp(currentPosition.y, targetPosition.y, ref currentVelocity.y, smoothness);
+        float newZ = Mathf.SmoothDamp(currentPosition.z, targetPosition.z, ref currentVelocity.z, smoothness);
 
-        transform.position = new Vector2(newX, newY) + offset;
+        transform.position = new Vector3(newX, newY, newZ);
     }
 }

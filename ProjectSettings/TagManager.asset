@@ -15,7 +15,7 @@ TagManager:
   - Floor
   - Wall
   - Minimap
-  - 
+  - Astonaut
   - 
   - 
   - 
@@ -38,6 +38,15 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Background
+    uniqueID: 1851155493
+    locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Pod
+    uniqueID: 2585762291
+    locked: 0
+  - name: Astronaut
+    uniqueID: 2796868417
     locked: 0

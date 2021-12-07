@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Cinemachine;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,26 +10,29 @@ public class Pod : MonoBehaviour
 {
     public static Pod Instance;
 
+    [SerializeField] private CinemachineVirtualCamera playerCamera;
+
     private Transform _boosterL;
     private Transform _boosterR;
     private Transform _auxL;
     private Transform _auxR;
 
+    private bool _boarded;
+
     private Rigidbody2D _rb;
-    private EdgeCollider2D _criticalAreaCollider;
+    private PolygonCollider2D _criticalAreaCollider;
 
     public bool invertedButtons;
-
-    [SerializeField] private float totalThrustCapacity;
-    [SerializeField] private float thrustDiminishRate;
-    [SerializeField] private float thrustRegainRate;
-    public float currentThrustCapacity;
 
     public float thrustForce = 5f;
     public float hullResistance = 1.5f;
     public LayerMask floorMask;
     private Vector2 _initialPosition;
+    private Vector2 _spriteSize;
 
+    private PodEntrance _podEntrance;
+
+    private bool _pressedBoardingBtn = false;
 
     private void Awake()
     {
@@ -43,54 +47,67 @@ public class Pod : MonoBehaviour
         _auxL = gameObject.transform.GetChild(2);
         _auxR = gameObject.transform.GetChild(3);
 
-        _criticalAreaCollider = GetComponent<EdgeCollider2D>();
+        _boarded = false;
+
+        _criticalAreaCollider = GetComponent<PolygonCollider2D>();
         _rb = GetComponent<Rigidbody2D>();
-        currentThrustCapacity = totalThrustCapacity;
+
+        _spriteSize = GetComponent<SpriteRenderer>().size;
 
         _initialPosition = transform.position;
+
+        _podEntrance = GetComponentInChildren<PodEntrance>();
     }
 
     // Update is called once per frame
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            
+            _pressedBoardingBtn = true;
+        }
+    }
+
     void FixedUpdate()
     {
-        bool thrusting = false;
-
-        /* Main thrust */
-        if ((!invertedButtons && Input.GetKey(KeyCode.A)) || (invertedButtons && Input.GetKey(KeyCode.D)))
+        if (_boarded)
         {
-            ThrustAt(1, _boosterL.transform);
-            thrusting = true;
+            /* Main thrusters */
+            if (PressedLeftThrusterBtn() && PressedRightThrusterBtn())
+            {
+                ThrustAt(2f, transform);
+            }
+            else
+            {
+                if (PressedRightThrusterBtn())
+                {
+                    ThrustAt(1f, _boosterR.transform);
+                }
+                else
+                if (PressedLeftThrusterBtn())
+                {
+                    ThrustAt(1f, _boosterL.transform);
+                }
+            }
+            
+            if (_pressedBoardingBtn && IsGrounded())
+            {
+                Unboard();
+            }
+            
+            /* Reset Command */
+            if (Input.GetKey(KeyCode.R))
+            {
+                Reset();
+            }
+        }
+        else if (_podEntrance.IsAstronautTouchingDoor() && _pressedBoardingBtn)
+        {
+            Board();
         }
 
-        if ((!invertedButtons && Input.GetKey(KeyCode.D)) || (invertedButtons && Input.GetKey(KeyCode.A)))
-        {
-            ThrustAt(1, _boosterR.transform);
-            thrusting = true;
-        }
-
-        /* Auxiliary thrust */
-        if (Input.GetKey(KeyCode.LeftArrow))
-        {
-            _rb.AddForceAtPosition(_auxL.up * thrustForce, _auxL.position);
-            thrusting = true;
-        }
-
-        if (Input.GetKey(KeyCode.RightArrow))
-        {
-            _rb.AddForceAtPosition(_auxR.up * thrustForce, _auxR.position);
-            thrusting = true;
-        }
-
-        if (!thrusting && !IsGrounded())
-        {
-            GradualRegain();
-        }
-
-        /* Reset Position */
-        if (Input.GetKey(KeyCode.R))
-        {
-            Reset();
-        }
+        _pressedBoardingBtn = false;
     }
 
     private void OnCollisionEnter2D(Collision2D other)
@@ -99,14 +116,12 @@ public class Pod : MonoBehaviour
         if (floorMask == (floorMask | (1 << other.gameObject.layer)))
         {
             ContactPoint2D contact = other.GetContact(0);
-            Vector2 contactPosition = contact.point;
 
             /* Is either a stronger collision than the pod can handle
              or it collided on a critical area of the vessel */
             if (_criticalAreaCollider.IsTouching(other.collider) ||
                 other.relativeVelocity.y > hullResistance)
             {
-                Debug.Log("Exploded " + other.relativeVelocity.y);
                 Explode();
             }
             else
@@ -116,26 +131,31 @@ public class Pod : MonoBehaviour
         }
     }
 
-    private bool IsGrounded()
+    private void Board()
     {
-        Vector2 curPosition = transform.position;
-        float castDistance = 0.5f;
-
-        RaycastHit2D hitOnGround = Physics2D.Raycast(curPosition, -transform.up, castDistance, floorMask);
-        return hitOnGround.collider != null;
+        SetCamera(true);
+        Astronaut astronaut = Astronaut.Instance;
+        
+        astronaut.OnBoard();
+        
+        _boarded = true;
     }
 
-    private void GradualRegain()
+    private void Unboard()
     {
-        if (currentThrustCapacity < totalThrustCapacity)
-            currentThrustCapacity += thrustRegainRate;
-        else
-            currentThrustCapacity = totalThrustCapacity;
+        SetCamera(false);
+        
+        _boarded = false;
+        Astronaut astronaut = Astronaut.Instance;
+        Transform astronautTransform = astronaut.transform;
+        
+        astronautTransform.position = _podEntrance.transform.position;
+        astronaut.OnUnboard();
     }
-    
+
     private void OnLand()
     {
-        currentThrustCapacity = totalThrustCapacity;
+
     }
 
     private void Explode()
@@ -155,14 +175,41 @@ public class Pod : MonoBehaviour
 
     private void ThrustAt(float forceScale, Transform thruster)
     {
-        if (currentThrustCapacity > 0)
+        _rb.AddForceAtPosition(thruster.up * thrustForce * forceScale, thruster.position);
+    }
+
+    private bool PressedRightThrusterBtn()
+    {
+        return (!invertedButtons && Input.GetKey(KeyCode.D)) || (invertedButtons && Input.GetKey(KeyCode.A));
+    }
+    
+    private bool PressedLeftThrusterBtn()
+    {
+        return (!invertedButtons && Input.GetKey(KeyCode.A)) || (invertedButtons && Input.GetKey(KeyCode.D));
+    }
+
+    private void SetCamera(bool focusOnPod)
+    {
+        if (focusOnPod)
         {
-            _rb.AddForceAtPosition(thruster.up * thrustForce * forceScale, thruster.position);
-            currentThrustCapacity -= thrustDiminishRate;
+            playerCamera.m_Priority = 10;
         }
         else
         {
-            Debug.Log("Thrusters capacity empty");
+            playerCamera.m_Priority = 0;
         }
+    }
+    
+    private bool IsGrounded()
+    {
+        Vector2 curPosition = transform.position;
+
+        float castDistance = 0.3f;
+
+        RaycastHit2D hitOnGroundC = Physics2D.Raycast(curPosition, -transform.up, castDistance, floorMask);
+        RaycastHit2D hitOnGroundL = Physics2D.Raycast(new Vector2(_boosterL.position.x, curPosition.y), -transform.up, castDistance, floorMask);
+        RaycastHit2D hitOnGroundR = Physics2D.Raycast(new Vector2(_boosterR.position.x, curPosition.y), -transform.up, castDistance, floorMask);
+
+        return hitOnGroundC.collider != null || hitOnGroundR.collider != null || hitOnGroundL.collider != null;
     }
 }
