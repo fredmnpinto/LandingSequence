@@ -1,5 +1,5 @@
 # LandingSequence
-This is a small project/prototype for an idea I thought would be fun for a casual game, possibly mobile.
+This is a small project/prototype in Unity for an idea I thought would be fun for a casual game, possibly mobile.
 
 ## Basics
 - You have a spaceship with 2 thrusters and you control each of them separately (Keys A and D or <- and ->).
